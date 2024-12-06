@@ -1,0 +1,2 @@
+email senderga oz email va email parolini beryapman uni .env ga saqlash kerak kiyin
+
