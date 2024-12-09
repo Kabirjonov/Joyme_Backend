@@ -1,92 +1,74 @@
 const express = require('express');
 const router = express.Router();
 const auth = require('../middleware/auth');
+const upload = require('../middleware/image')
 const { User } = require('../models/Authorization');
-const multer = require('multer');
-const sharp = require('sharp');
 const path = require('path');
 const fs = require('fs');
+const multer = require('multer');
 
 // uploads papkasini yaratishni tekshirish
 
 
-
-
-// Foydalanuvchi profili (GET so'rovi)
 router.get('/profile', auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select('-password');
-        res.json(user);
-    } catch (error) {
-        res.status(500).send('Server error');
+        const user = await User.findById(req.user.id).select('-password')
+        if (!user) return res.status(404).send({ message: "User not found!" })
+        res.status(200).send(user)
+    } catch (err) {
+        res.status(500).send({ message: "Server error", error: err.message })
     }
-});
-
-// Foydalanuvchi profili (PUT so'rovi)
-// uploads papkasini yaratishni tekshirish
-const ensureUploadsFolder = () => {
-    const dir = path.join(__dirname, '../uploads');
-    if (!fs.existsSync(dir)) {
-        fs.mkdirSync(dir, { recursive: true });
-    }
-};
-ensureUploadsFolder();
-
-// Multer sozlamalari (fayllarni xotirada saqlash)
-const storage = multer.memoryStorage();
-const upload = multer({ 
-    storage,
-    limits: { fileSize: 5 * 1024 * 1024 }, // Maksimal hajm: 5 MB
-    fileFilter: (req, file, cb) => {
-        const allowedTypes = /jpeg|jpg|png/;
-        const isValidType = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-        const isValidMime = allowedTypes.test(file.mimetype);
-
-        if (isValidType && isValidMime) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only JPEG, JPG, and PNG files are allowed!'));
-        }
-    },
-});
-
-// Foydalanuvchi profili (PUT so'rovi)
-router.put('/profile', auth, upload.single('profileImage'), async (req, res) => {
+})
+router.put('/profile', upload.single('file'), auth, async (req, res) => {
     try {
-        const { firstName, lastName, phone, birthday, gender, bio } = req.body;
-        const user = await User.findById(req.user.id);
+        const { firstName, lastName, email, phone, birthday, gender, bio } = req.body;
+        console.log('Req body:',req.body)
 
+        // Yangilanish uchun yangi obyektni tayyorlash
+        const updatedProfile = {
+            firstName,
+            lastName,
+            email,
+            phone,
+            birthday,
+            gender,
+            bio,
+        };
+        // Agar fayl yuklangan bo‘lsa, rasm yo‘lini qo‘shamiz
         if (req.file) {
-            // Delete old profile image if exists
-            if (user.profileImage) {
-                const oldImagePath = path.join(__dirname, '../uploads', user.profileImage);
-                if (fs.existsSync(oldImagePath)) {
-                    fs.unlinkSync(oldImagePath);  // Delete old file
-                }
-            }
-
-            // Profil rasmini saqlash uchun to'g'ri yo'lni belgilash
-            const profileImage = `uploads/${Date.now()}_${req.file.originalname}`;
-            const filePath = path.join(__dirname, '../uploads', profileImage); // uploads papkasida faylni saqlash
-            await sharp(req.file.buffer)
-                .resize(250, 250)
-                .toFile(filePath); // Faylni shu yo'lga saqlash
-
-            user.profileImage = `/${profileImage}`; // To'g'ri URL qaytariladi
+            updatedProfile.fileName = req.file.filename;
+            console.log("Special Profile put method",req.file.filename)
+            updatedProfile.fileUrl = `http://localhost:3001/uploads/${req.file.filename}` //req.file.path
         }
+        // Ma'lumotlar bazasida yangilash
+        const UploadUser = await User.findByIdAndUpdate(req.user.id, updatedProfile, { new: true });
+        if (!UploadUser) return res.status(404).send({ message: 'Foydalanuvchi topilmadi' });
 
-        user.firstName = firstName;
-        user.lastName = lastName;
-        user.phone = phone;
-        user.birthday = new Date(birthday);
-        user.gender = gender;
-        user.bio = bio;
-
-        await user.save();
-        res.json(user);
-    } catch (error) {
-        console.error(error);
-        res.status(500).send('Server error');
+        res.status(200).send({ message: 'Profil muvaffaqiyatli yangilandi', UploadUser: UploadUser, });
+        console.log('Update User:',UploadUser)
+    } catch (err) {
+        console.log(err)
+        res.status(500).send({ message: 'Profilni yangilashda xatolik', error: err.message });
     }
 });
+router.delete('/profile',auth,async(req,res)=>{
+    try{
+        const user = await User.findOneAndDelete(req.user.id)
+        if(!user)return res.status(404).send({message:"User not found!"})
+        res.status(200).send('user')
+    }catch(err){
+        res.status(500).send({ message: "Server error", error: err.message })
+    }
+})
+
+router.use((err, req, res, next) => {
+    if (err instanceof multer.MulterError) {
+        res.status(400).json({ message: 'Yuklash xatoligi', error: err.message });
+    } else if (err) {
+        res.status(500).json({ message: 'Server xatoligi', error: err.message });
+    } else {
+        next();
+    }
+});
+
 module.exports = router;

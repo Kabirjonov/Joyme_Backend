@@ -2,7 +2,6 @@ const Joi = require('joi');
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken')
 const config = require('config')
-// Define the User schema
 
 const UserSchema = new mongoose.Schema({
     firstName: { type: String, required: true },
@@ -13,12 +12,9 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: ['man', 'woman'] },
     bio:{type:String},
-    profileImage: {
-        type: Buffer, // Rasmni Buffer sifatida saqlash
-    },
-    profileImageType: {
-        type: String, // Rasmning MIME turi, masalan 'image/jpeg', 'image/png'
-    },
+
+    fileName:{type:String,},
+    fileUrl:{type:String,},
 });
 
 
@@ -41,7 +37,9 @@ const UserValidator = (user) => {
         password: Joi.string().required().min(6).max(255),
         gender: Joi.string().valid('man', 'woman').required(),
         bio:Joi.string().optional(),
-        profileImage: Joi.string().optional(), // Base64 formatda yuboriladigan rasm (agar kerak bo'lsa)
+
+        fileName:Joi.string().optional(),
+        fileUrl:Joi.string().optional(),
     });
     return validate.validate(user);
 };
@@ -54,7 +52,6 @@ const LoginValidator = (user) => {
 };
 
 const User = mongoose.model('User', UserSchema);
-// Export both the validator and mongoose model as properties of an object
 exports.User = User;
 exports.LoginValidator = LoginValidator;
 exports.UserValidator = UserValidator;

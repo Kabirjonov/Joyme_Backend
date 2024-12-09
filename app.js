@@ -13,6 +13,7 @@ var logupRouter = require('./routes/logup');
 const apiRouter = require('./routes/api');
 const loginRouter = require('./routes/login');
 const profileRouter = require('./routes/profile')
+const dashboardRouter = require('./routes/dashboard')
 // const contactRouter = require('./routes/contact')
 
 
@@ -55,7 +56,7 @@ app.use('/api', logupRouter);
 app.use('/api', loginRouter);
 app.use('/api',apiRouter)
 app.use('/api',profileRouter)
-
+app.use('/api',dashboardRouter)
 
 // app.use('/api',contactRouter) //email sender doesn't working
 // gmailSender filini
