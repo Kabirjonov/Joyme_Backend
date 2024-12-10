@@ -1,14 +1,20 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
-const upload = require('../middleware/image')
+
 const { User } = require('../models/Authorization');
+
+
+
 const path = require('path');
 const fs = require('fs');
 const multer = require('multer');
+const fileUrl = require('../middleware/fileUrl');
 
-// uploads papkasini yaratishni tekshirish
-
+// middlewares
+const auth = require('../middleware/auth');
+const upload = require('../middleware/image')
+const createImageUrl =require('../middleware/fileUrl')
+const delImg = require('../middleware/deleteImg')
 
 router.get('/profile', auth, async (req, res) => {
     try {
@@ -19,12 +25,13 @@ router.get('/profile', auth, async (req, res) => {
         res.status(500).send({ message: "Server error", error: err.message })
     }
 })
-router.put('/profile', upload.single('file'), auth, async (req, res) => {
+router.put('/profile', upload.single('file'), auth,createImageUrl, async (req, res) => {
     try {
         const { firstName, lastName, email, phone, birthday, gender, bio } = req.body;
         console.log('Req body:',req.body)
 
         // Yangilanish uchun yangi obyektni tayyorlash
+        const fileUrl = req.ImgUrl;
         const updatedProfile = {
             firstName,
             lastName,
@@ -33,13 +40,10 @@ router.put('/profile', upload.single('file'), auth, async (req, res) => {
             birthday,
             gender,
             bio,
+            fileName: req.file?req.file.filename:null,
+            fileUrl:fileUrl,
         };
-        // Agar fayl yuklangan bo‘lsa, rasm yo‘lini qo‘shamiz
-        if (req.file) {
-            updatedProfile.fileName = req.file.filename;
-            console.log("Special Profile put method",req.file.filename)
-            updatedProfile.fileUrl = `http://localhost:3001/uploads/${req.file.filename}` //req.file.path
-        }
+    
         // Ma'lumotlar bazasida yangilash
         const UploadUser = await User.findByIdAndUpdate(req.user.id, updatedProfile, { new: true });
         if (!UploadUser) return res.status(404).send({ message: 'Foydalanuvchi topilmadi' });
@@ -54,10 +58,12 @@ router.put('/profile', upload.single('file'), auth, async (req, res) => {
 router.delete('/profile',auth,async(req,res)=>{
     try{
         const user = await User.findOneAndDelete(req.user.id)
+        if(user.fileName!==null)delImg(user.fileName)
         if(!user)return res.status(404).send({message:"User not found!"})
-        res.status(200).send('user')
+        res.status(200).json({message:"Your account is deleted"})
     }catch(err){
         res.status(500).send({ message: "Server error", error: err.message })
+        console.log(err)
     }
 })
 

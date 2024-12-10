@@ -55,7 +55,7 @@ const validate = Joi.object({
         'any.only': 'Tur faqat "Sell" yoki "Rent" bo‘lishi kerak!',
         'any.required': 'Tur majburiy!'
     }),
-    turi: Joi.string().valid('House', 'Apartment', ).insensitive().required().messages({
+    tur: Joi.string().valid('house', 'apartment', ).required().messages({
         'any.only': 'Uy turi noto‘g‘ri!',
         'any.required': 'Uy turi majburiy!'
     }),

@@ -2,8 +2,7 @@ const multer = require('multer');
 const fs = require('fs')
 const path = require('path')
 
-
-const rootDir = path.join(__dirname, '..'); // Fayldan tashqariga chiqish
+const rootDir = path.join(__dirname, '..'); 
 const publicDir = path.join(rootDir, 'public');
 const uploadsDir = path.join(publicDir, 'uploads');
 function createNeedFolder(folderPath){
@@ -37,5 +36,3 @@ const upload = multer({
     limits:{fileSize:5*1024*1024}
 })
 module.exports = upload
-
-// const generaterImgUrl = 
