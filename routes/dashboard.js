@@ -18,7 +18,9 @@ router.post('/dashboard', auth, upload.single('file'), async (req, res) => {
             area,
             coordinates: JSON.parse(coordinates),
             comment,
-            author: req.user.id,
+            author: req.user.id,    
+            // authorInfo:{}
+        
         });
         const { error } = houseValidation(newHouse)
         if (error) {
@@ -32,7 +34,7 @@ router.post('/dashboard', auth, upload.single('file'), async (req, res) => {
         res.status(201).send({ message: 'Seccessfully' });
     } catch (err) {
         res.status(500).json({ message: 'Server xatosi', error: err.message });
-        console.log(err.message)
+        console.log(err)
     }
 })
 

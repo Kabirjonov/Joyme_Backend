@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const { User } = require('../models/Authorization');
-
+const {House} = require('../models/Houses')
 
 
 const path = require('path');
@@ -28,44 +28,59 @@ router.get('/profile', auth, async (req, res) => {
 router.put('/profile', upload.single('file'), auth,createImageUrl, async (req, res) => {
     try {
         const { firstName, lastName, email, phone, birthday, gender, bio } = req.body;
-        console.log('Req body:',req.body)
+        const user = await User.findById(req.user.id)
+        if (!user) return res.status(404).send({ message: 'Foydalanuvchi topilmadi' });
+
 
         // Yangilanish uchun yangi obyektni tayyorlash
-        const fileUrl = req.ImgUrl;
+        let fileUrl,fileName;
+        // const fileUrl = req.file ? req.ImgUrl : user.fileUrl;
+        // const fileName = req.file ? req.file.filename : user.fileName;
+        if(req.file){
+            fileUrl=req.ImgUrl;
+            fileName=req.file.filename
+            delImg(user.fileName)
+        }else{
+            fileUrl = user.fileUrl
+            fileName = user.fileName
+        }
         const updatedProfile = {
-            firstName,
-            lastName,
-            email,
-            phone,
-            birthday,
-            gender,
-            bio,
-            fileName: req.file?req.file.filename:null,
-            fileUrl:fileUrl,
+            firstName: firstName || user.firstName,
+            lastName: lastName || user.lastName,
+            email: email || user.email,
+            phone: phone || user.phone,
+            birthday: birthday || user.birthday,
+            gender: gender || user.gender,
+            bio: bio || user.bio,
+            fileName,
+            fileUrl,
         };
     
         // Ma'lumotlar bazasida yangilash
         const UploadUser = await User.findByIdAndUpdate(req.user.id, updatedProfile, { new: true });
-        if (!UploadUser) return res.status(404).send({ message: 'Foydalanuvchi topilmadi' });
 
         res.status(200).send({ message: 'Profil muvaffaqiyatli yangilandi', UploadUser: UploadUser, });
-        console.log('Update User:',UploadUser)
     } catch (err) {
         console.log(err)
         res.status(500).send({ message: 'Profilni yangilashda xatolik', error: err.message });
     }
 });
-router.delete('/profile',auth,async(req,res)=>{
-    try{
-        const user = await User.findOneAndDelete(req.user.id)
-        if(user.fileName!==null)delImg(user.fileName)
-        if(!user)return res.status(404).send({message:"User not found!"})
-        res.status(200).json({message:"Your account is deleted"})
-    }catch(err){
-        res.status(500).send({ message: "Server error", error: err.message })
-        console.log(err)
+router.delete('/profile', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.user.id);
+        if (!user) return res.status(404).send({ message: "User not found!" });
+        const house = await House.find({author:req.user.id})
+        if(house){
+            return res.status(422).json({message:"Iltimos account o`chirishdan oldin qo`shilgan e`lonlarni o`chiring!"})
+        }
+        if (user.fileName) delImg(user.fileName);
+        await User.findByIdAndDelete(req.user.id);
+        res.status(204).json({ message: "Your account has been deleted successfully." });
+    } catch (err) {
+        console.error("Error deleting user:", err.message);
+        res.status(500).json({ message: "Server error", error: err.message });
     }
-})
+});
 
 router.use((err, req, res, next) => {
     if (err instanceof multer.MulterError) {

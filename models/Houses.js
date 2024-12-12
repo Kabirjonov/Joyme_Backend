@@ -20,7 +20,9 @@ const houseSchema = new mongoose.Schema({
     },
     area: { type: Number, required: true, min: 1 },
     comment: { type: String, trim: true, maxlength: 500 },
-    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true }
+    author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    like:{type:Number},
+    Islike:{type:Number},
 }, {
     timestamps: true
 });
@@ -73,7 +75,7 @@ const validate = Joi.object({
         'number.min': 'Maydon 1 kv.m dan kam bo‘lmasligi kerak!',
         'any.required': 'Maydon majburiy!'
     }),
-    comment: Joi.string().max(500).allow('').messages({
+    comment: Joi.string().allow('').messages({
         'string.max': 'Izoh 500 belgidan oshmasligi kerak!'
     }),
     author: Joi.string().required().messages({

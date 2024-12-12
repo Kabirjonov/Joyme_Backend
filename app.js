@@ -14,6 +14,8 @@ const apiRouter = require('./routes/api');
 const loginRouter = require('./routes/login');
 const profileRouter = require('./routes/profile')
 const dashboardRouter = require('./routes/dashboard')
+const blogRouter = require('./routes/blog')
+const houseRouter = require('./routes/house')
 // const contactRouter = require('./routes/contact')
 
 
@@ -38,7 +40,14 @@ const corsOptions = {
 };
 app.use(helmet())
 app.use(logger('dev'));
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: 'http://localhost:3000',  // Frontend manzilingiz
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true, // Cookie va headers yuborishni ruxsat berish
+  allowedHeaders: ['Content-Type', 'Authorization', 'x-auth-token'],
+  exposedHeaders: ['x-auth-token'], // Tokenni headers orqali ochish
+
+}));
 app.use(express.json()); // Middleware to parse JSON requests
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
@@ -57,6 +66,8 @@ app.use('/api', loginRouter);
 app.use('/api',apiRouter)
 app.use('/api',profileRouter)
 app.use('/api',dashboardRouter)
+app.use('/api',blogRouter)
+app.use('/api',houseRouter)
 
 // app.use('/api',contactRouter) //email sender doesn't working
 // gmailSender filini

@@ -12,6 +12,7 @@ const UserSchema = new mongoose.Schema({
     password: { type: String, required: true },
     gender: { type: String, required: true, enum: ['man', 'woman'] },
     bio:{type:String},
+    isAdmin:{type:Boolean},
 
     fileName:{type:String,},
     fileUrl:{type:String,},
@@ -37,7 +38,7 @@ const UserValidator = (user) => {
         password: Joi.string().required().min(6).max(255),
         gender: Joi.string().valid('man', 'woman').required(),
         bio:Joi.string().optional(),
-
+        isAdmin:Joi.boolean().required(),
         fileName:Joi.string().optional(),
         fileUrl:Joi.string().optional(),
     });
