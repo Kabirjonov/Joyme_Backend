@@ -3,9 +3,11 @@
   "version": "0.0.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www"
+    "start": "node ./bin/www"
   },
   "dependencies": {
+    "mongoose": "^7.0.0" ,
+    "cors": "^2.8.5",
     "bcrypt": "^5.1.1",
     "config": "^3.3.12",
     "cookie-parser": "~1.4.4",
