@@ -7,7 +7,7 @@ const cors  = require('cors')
 const  mongoose = require('mongoose');
 const config = require('config')
 const helmet = require('helmet')
-
+require('dotenv').config()
 var indexRouter = require('./routes/index');
 var logupRouter = require('./routes/logup');
 const apiRouter = require('./routes/api');
