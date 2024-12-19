@@ -1,13 +1,14 @@
 const mongoose = require('mongoose');
 
 const houseSchema = new mongoose.Schema({
-    fileName: { type: String, required: true, trim: true },
+    fileNames: { type: [String], required: true, trim: true },
+    fileUrls: { type: [String], required: true },
     price: { type: Number, required: true, min: 0 },
     viloyat: { type: String, required: true, trim: true },
     tuman: { type: String, required: true, trim: true },
     shaxar: { type: String, required: true, trim: true },
-    type: { type: String, enum: ['sell', 'rent'],lowercase: true, required: true },
-    tur: { type: String, enum: ['house', 'apartment'], lowercase: true,required: true },
+    type: { type: String, enum: ['sell', 'rent'], lowercase: true, required: true },
+    tur: { type: String, enum: ['house', 'apartment'], lowercase: true, required: true },
     coordinates: {
         type: [Number],
         required: true,
@@ -15,19 +16,17 @@ const houseSchema = new mongoose.Schema({
             validator: function(v) {
                 return v.length === 2;
             },
-            message: "Koordinatalar faqat longitude va latitude bo'lishi kerak!"
+            message: "Coordinates must be [longitude, latitude]!"
         }
     },
     area: { type: Number, required: true, min: 1 },
     comment: { type: String, trim: true, maxlength: 500 },
     author: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-    like:{type:Number},
-    Islike:{type:Number},
 }, {
     timestamps: true
 });
 
-// Geolokatsiya uchun indeksi
+// Index for geolocation search
 houseSchema.index({ coordinates: '2dsphere' });
 
 
@@ -35,7 +34,7 @@ const Joi = require('joi');
 // Uy sotish uchun validatsiya sxemasi
 const houseValidation = (house)=>{
 const validate = Joi.object({
-    fileName: Joi.string().required().messages({
+    fileNames: Joi.array().required().messages({
         'string.empty': 'Fayl manzili majburiy!',
         'string.uri': 'Fayl URL bo‘lishi kerak!'
     }),
@@ -80,7 +79,8 @@ const validate = Joi.object({
     }),
     author: Joi.string().required().messages({
         'string.empty': 'Muallif ID majburiy!'
-    })
+    }),
+    fileUrls:Joi.array().optional(),
 });
     return validate.validate(house);
 }

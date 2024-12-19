@@ -10,12 +10,12 @@ const helmet = require('helmet')
 require('dotenv').config()
 var indexRouter = require('./routes/index');
 var logupRouter = require('./routes/logup');
-const apiRouter = require('./routes/api');
 const loginRouter = require('./routes/login');
 const profileRouter = require('./routes/profile')
 const dashboardRouter = require('./routes/dashboard')
 const blogRouter = require('./routes/blog')
 const houseRouter = require('./routes/house')
+const userRouter = require('./routes/user')
 // const contactRouter = require('./routes/contact')
 
 
@@ -63,11 +63,11 @@ mongoose.connect('mongodb://localhost/FullStack')
 app.use('/', indexRouter);
 app.use('/api', logupRouter);
 app.use('/api', loginRouter);
-app.use('/api',apiRouter)
 app.use('/api',profileRouter)
 app.use('/api',dashboardRouter)
 app.use('/api',blogRouter)
 app.use('/api',houseRouter)
+app.use('/api',userRouter)
 
 // app.use('/api',contactRouter) //email sender doesn't working
 // gmailSender filini
